@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SQL Injection Challenge</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        .form-container { display: inline-block; text-align: left; }
+        .giphy-container { margin-top: 20px; display: none; }
+    </style>
+</head>
+<body>
+    <h1>Advanced SQL Injection Challenge</h1>
+    <p>Enter credentials or craft a query to extract the hidden flag.</p>
+
+    <div class="form-container">
+        <form action="/login" method="POST" id="loginForm">
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username" placeholder="Enter username"><br><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password" placeholder="Enter password"><br><br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <p id="result"></p>
+    <div id="giphyContainer" class="giphy-container">
+        <iframe src="https://giphy.com/embed/ra75UYT9LjKSY" width="480" height="480" frameborder="0" allowfullscreen></iframe>
+        <p><a href="https://giphy.com/gifs/ra75UYT9LjKSY">via GIPHY</a></p>
+    </div>
+
+    <h2>Submit Your Flag</h2>
+    <div class="form-container">
+        <form action="/submit-flag" method="POST" id="flagForm">
+            <label for="flag">Flag:</label><br>
+            <input type="text" id="flag" name="flag" placeholder="Enter your flag"><br><br>
+            <button type="submit">Submit Flag</button>
+        </form>
+    </div>
+    <p id="flagResult"></p>
+
+    <script>
+        console.log("Hint 1: Start with a basic SQL Injection payload like ' OR '1'='1");
+        console.log("Hint 2: Try using UNION SELECT to fetch data.");
+        console.log("Hint 3: The flag is split into 3 parts");
+
+        const form = document.getElementById("loginForm");
+        const result = document.getElementById("result");
+        const flagForm = document.getElementById("flagForm");
+        const flagResult = document.getElementById("flagResult");
+        const giphyContainer = document.getElementById("giphyContainer");
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const formData = new URLSearchParams();
+            formData.append("username", document.getElementById("username").value);
+            formData.append("password", document.getElementById("password").value);
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString(),
+            });
+
+            const text = await response.text();
+            result.innerHTML = text;
+
+            if (text.toLowerCase().includes("error") || text.toLowerCase().includes("incorrect")) {
+                showGiphyFor5Seconds();
+            } else if (text.includes("FLAG_FOUND")) {
+                showGiphyFor5Seconds();
+            } else {
+                giphyContainer.style.display = "none";
+            }
+        };
+
+        flagForm.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const formData = new URLSearchParams();
+            formData.append("flag", document.getElementById("flag").value);
+
+            const response = await fetch("/submit-flag", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData.toString(),
+            });
+
+            const text = await response.text();
+            flagResult.innerHTML = text;
+
+            if (text.toLowerCase().includes("congratulations")) {
+                flagResult.style.color = "green";
+            } else {
+                flagResult.style.color = "red";
+            }
+        };
+
+        function showGiphyFor5Seconds() {
+            giphyContainer.style.display = "block";
+            setTimeout(() => {
+                giphyContainer.style.display = "none";
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
